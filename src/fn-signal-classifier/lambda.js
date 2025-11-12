@@ -1,39 +1,37 @@
 // Recommended Packages for this Lambda
 const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 const AWSXRay = require('aws-xray-sdk-core');
-let jsonMessage;
-let darkMessage = {type: "dark-signal", originalPayload: jsonMessage};
+
 // SNS to send messages to
 const snsArn = process.env.SNSArn;
 
 exports.handler = async (event) => {
     console.log(JSON.stringify(event));
-    // Determine if the message is a dark signal or not
-    let signalType = determineSignal(event);
+    let signal = determineSignal(event);
 
-    const isDark = signalType === "dark-signal" || signalType === undefined || jsonMessage.detail.data != undefined;
-
-    let messageToSend;
-
-    if (!isDark) {
-        // Create correct message
-        messageToSend = jsonMessage;
-    } else {
-        // Create correct message
-        darkMessage.originalPayload = jsonMessage;
-        messageToSend = darkMessage;
-    }
-    console.log("message to send")
-    // Send to SNS
-    await sendToSNS(messageToSend);
+    await sendToSNS({
+        type: signal,
+        originalPayload: event.detail
+    });
 }
 
 function determineSignal(message) {
-    // Return the correct signal-type
-    jsonMessage = message;
-    const signalType = jsonMessage.detail.type;
-    console.log("SignalType: ", signalType);
-    return signalType;
+    const detail = message.detail;
+    let type
+
+    if (detail.intensity < 3 && detail.creature == "creature") {
+        type = "observation";
+    } else if (detail.intensity == 3 && detail.creature == "creature") {
+        type = "rare-observation";
+    } else if (detail.intensity == 2 && (detail.creature == "hazard" || detail.creature == "anomaly")) {
+        type = "alert"
+    } else if (detail.data !== undefined) {
+        type = "dark-signal"
+    } else {
+        type = "observation";
+    }
+
+    return type;
 }
 
 async function sendToSNS(message) {

@@ -1,7 +1,6 @@
 // Recommended Packages for this Lambda
 const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 const AWSXRay = require('aws-xray-sdk-core');
-const {parse} = require("dotenv");
 
 // SNS to send messages to
 const snsArn = process.env.SNSArn;

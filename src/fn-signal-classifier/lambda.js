@@ -1,3 +1,4 @@
+require('dotenv').config();
 // Recommended Packages for this Lambda
 const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 const AWSXRay = require('aws-xray-sdk-core');

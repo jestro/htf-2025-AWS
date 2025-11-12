@@ -23,6 +23,7 @@ exports.handler = async (event) => {
 
     console.log(JSON.stringify(messageToSend))
     // Send to SNS
+    sendToSNS(messageToSend)
 }
 
 function determineSignal(message) {

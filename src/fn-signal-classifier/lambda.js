@@ -1,34 +1,39 @@
 // Recommended Packages for this Lambda
 const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 const AWSXRay = require('aws-xray-sdk-core');
-
+let jsonMessage;
+let darkMessage = {type: "dark-signal", originalPayload: jsonMessage};
 // SNS to send messages to
 const snsArn = process.env.SNSArn;
 
 exports.handler = async (event) => {
     console.log(JSON.stringify(event));
-
     // Determine if the message is a dark signal or not
-    let isDark;
+    let signalType = determineSignal(event);
 
+    let isDark;
+    isDark = signalType === "dark-signal" || signalType === undefined || jsonMessage.detail.data != undefined;
     let messageToSend;
 
     if (!isDark) {
         // Create correct message
-        messageToSend = null;
+        messageToSend = JSON.stringify(jsonMessage);
     } else {
         // Create correct message
-        messageToSend = null;
+        darkMessage.originalPayload = jsonMessage;
+        messageToSend = darkMessage;
     }
-
-    console.log(JSON.stringify(messageToSend))
+    console.log("message to send")
     // Send to SNS
     sendToSNS(messageToSend)
 }
 
 function determineSignal(message) {
     // Return the correct signal-type
-    return;
+    jsonMessage = message;
+    const signalType = jsonMessage.detail.type;
+    console.log("SignalType: ", signalType);
+    return signalType;
 }
 
 async function sendToSNS(message) {

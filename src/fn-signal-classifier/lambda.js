@@ -23,6 +23,7 @@ exports.handler = async (event) => {
 
     console.log(JSON.stringify(messageToSend))
     // Send to SNS
+    sendToSNS(messageToSend)
 }
 
 function determineSignal(message) {
@@ -35,13 +36,17 @@ async function sendToSNS(message) {
 
     // Client to be used
     const snsClient = AWSXRay.captureAWSv3Client(new SNSClient());
- 
+
     // Setup parameters for SNS
-    let params;
+    const params = {
+        TopicArn: snsArn,
+        Message: JSON.stringify(message),
+    };
 
-    // Get a response
-    let response;
-
-    // Just to check if it worked
-    console.log(response);
+    try {
+        const response = await snsClient.send(new PublishCommand(params));
+        console.log(response);
+    } catch (err) {
+        console.error("Error sending message:", err);
+    }
 }

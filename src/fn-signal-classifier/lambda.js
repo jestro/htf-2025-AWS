@@ -1,4 +1,3 @@
-require('dotenv').config();
 // Recommended Packages for this Lambda
 const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 const AWSXRay = require('aws-xray-sdk-core');
@@ -36,13 +35,17 @@ async function sendToSNS(message) {
 
     // Client to be used
     const snsClient = AWSXRay.captureAWSv3Client(new SNSClient());
- 
+
     // Setup parameters for SNS
-    let params;
+    const params = {
+        TopicArn: snsArn,
+        Message: JSON.stringify(message),
+    };
 
-    // Get a response
-    let response;
-
-    // Just to check if it worked
-    console.log(response);
+    try {
+        const response = await snsClient.send(new PublishCommand(params));
+        console.log(response);
+    } catch (err) {
+        console.error("Error sending message:", err);
+    }
 }

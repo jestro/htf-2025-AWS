@@ -128,7 +128,7 @@ Resources:
             Resource: '*'
           - Effect: Allow
             Action:
-              - 'opensearch:*'
+              - 'aoss:*'
             Resource: '*'
           - Effect: Allow
             Action:

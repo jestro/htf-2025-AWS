@@ -31,10 +31,8 @@ exports.handler = async (event) => {
     switch (message.type) {
         case "observation":
         case "rare-observation":
-            await insertIntoDynamoDB(message, timestamp, snsMessageId);
-            break;
         case "alert":
-            await insertIntoOpenSearch(message, timestamp, snsMessageId);
+            await insertIntoDynamoDB(message, timestamp, snsMessageId);
             break;
     }
 }

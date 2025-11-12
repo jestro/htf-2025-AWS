@@ -67,11 +67,11 @@ async function insertIntoOpenSearch(message, timestamp, snsMessageId) {
         body: {
             id: snsMessageId,
             team: "htf-securitymobistar",
-            species: message.detail.species,
-            location: message.detail.location,
-            intensity: message.detail.intensity,
+            species: message.species,
+            location: message.location,
+            intensity: message.intensity,
             timestamp: timestamp,
-            type: message.detail.type
+            type: message.type
         }
     }
 

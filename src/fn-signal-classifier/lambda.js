@@ -11,13 +11,13 @@ exports.handler = async (event) => {
     // Determine if the message is a dark signal or not
     let signalType = determineSignal(event);
 
-    let isDark;
-    isDark = signalType === "dark-signal" || signalType === undefined || jsonMessage.detail.data != undefined;
+    const isDark = signalType === "dark-signal" || signalType === undefined || jsonMessage.detail.data != undefined;
+
     let messageToSend;
 
     if (!isDark) {
         // Create correct message
-        messageToSend = JSON.stringify(jsonMessage);
+        messageToSend = jsonMessage;
     } else {
         // Create correct message
         darkMessage.originalPayload = jsonMessage;
@@ -25,7 +25,7 @@ exports.handler = async (event) => {
     }
     console.log("message to send")
     // Send to SNS
-    sendToSNS(messageToSend)
+    await sendToSNS(messageToSend);
 }
 
 function determineSignal(message) {

@@ -31,23 +31,24 @@ exports.handler = async (event) => {
     switch (message.type) {
         case "observation":
         case "rare-observation":
-        case "alert":
             await insertIntoDynamoDB(message, timestamp, snsMessageId);
             break;
+        case "alert":
+            await insertIntoOpenSearch(message, timestamp, snsMessageId)
     }
 }
 
 async function insertIntoDynamoDB(message, timestamp, snsMessageId) {
     const params = {
         TableName: "HTF25-SecurityMobistar-Challenge2DynamoDB-HJYKMV5FHE25",
-        item: {
+        Item: {
             id: snsMessageId,
             team: "htf-securitymobistar",
-            species: message.species,
-            location: message.location,
-            intensity: message.intensity,
+            species: message.originalPayload.species,
+            location: message.originalPayload.location,
+            intensity: message.originalPayload.intensity,
             timestamp: timestamp,
-            type: message.type
+            type: message.originalPayload.type
         }
     }
 
@@ -65,16 +66,16 @@ async function insertIntoOpenSearch(message, timestamp, snsMessageId) {
         body: {
             id: snsMessageId,
             team: "htf-securitymobistar",
-            species: message.species,
-            location: message.location,
-            intensity: message.intensity,
+            species: message.originalPayload.species,
+            location: message.originalPayload.location,
+            intensity: message.originalPayload.intensity,
             timestamp: timestamp,
-            type: message.type
+            type: message.originalPayload.type
         }
     }
 
     try {
-        const response = osClient.index(params)
+        const response = await osClient.index(params)
         console.log("✅ Index inserted:", response);
     } catch (error) {
         console.error("❌ Error inserting index:", error);

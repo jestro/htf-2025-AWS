@@ -24,19 +24,61 @@ const dynamoClient = AWSXRay.captureAWSv3Client(new DynamoDBClient());
 exports.handler = async (event) => {
     console.log(JSON.stringify(event));
 
-    // Check where it should be stored
+    const message = JSON.parse(event.Records[0].Sns.Message);
+    const timestamp = event.Records[0].Sns.Timestamp;
+    const snsMessageId = event.Records[0].Sns.MessageId;
 
-    // Call the correct message
+    switch (message.type) {
+        case "observation":
+        case "rare-observation":
+            await insertIntoDynamoDB(message, timestamp, snsMessageId);
+            break;
+        case "alert":
+            await insertIntoOpenSearch(message, timestamp, snsMessageId);
+            break;
+    }
 }
 
-async function insertIntoDynamoDB() {
-    // Format the message for DynamoDB parameters (check README for indexes)
+async function insertIntoDynamoDB(message, timestamp, snsMessageId) {
+    const params = {
+        TableName: "HTF25-SecurityMobistar-Challenge2DynamoDB-HJYKMV5FHE25",
+        item: {
+            id: snsMessageId,
+            team: "htf-securitymobistar",
+            species: message.species,
+            location: message.location,
+            intensity: message.intensity,
+            timestamp: timestamp,
+            type: message.type
+        }
+    }
 
-    // Use the `dynamoClient` to insert the record into DynamoDB
+    try {
+        const response = await dynamoClient.send(new PutCommand(params));
+        console.log("✅ Item inserted successfully:", response);
+    } catch (error) {
+        console.error("❌ Error inserting item:", error);
+    }
 }
 
-async function insertIntoOpenSearch() {
-    // Format the message for OpenSearch parameters (check README for indexes)
+async function insertIntoOpenSearch(message, timestamp, snsMessageId) {
+    const params = {
+        index: "securitymobistar",
+        body: {
+            id: snsMessageId,
+            team: "htf-securitymobistar",
+            species: message.detail.species,
+            location: message.detail.location,
+            intensity: message.detail.intensity,
+            timestamp: timestamp,
+            type: message.detail.type
+        }
+    }
 
-    // Use the `osClient` to insert the record into OpenSearch
+    try {
+        const response = osClient.index(params)
+        console.log("✅ Index inserted:", response);
+    } catch (error) {
+        console.error("❌ Error inserting index:", error);
+    }
 }
